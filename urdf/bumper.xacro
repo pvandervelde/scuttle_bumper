@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+    <robot name="scuttle" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <link name="front_bumper_link">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.1"/>
+            <inertia ixx="0.038876" ixy="1.3e-05" ixz="1e-06" iyy="0.047513" iyz="0.000486" izz="0.084083"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0.10539999389648432 0 0.084749938964843793"/>
+            <geometry>
+            <mesh filename="package://scuttle_model/meshes/scuttle_bumper.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="silver"/>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0.10539999389648432 0 0.084749938964843793"/>
+            <geometry>
+            <mesh filename="package://scuttle_model/meshes/scuttle_bumper_collision_1.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="front_bumper_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+        <parent link="base_link"/>
+        <child link="front_bumper_link"/>
+    </joint>
+</robot>
