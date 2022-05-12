@@ -1,0 +1,62 @@
+<?xml version="1.0" ?>
+<robot name="scuttle" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:property name="bracket_color" value="Gazebo/Silver" />
+    <xacro:property name="bumper_color" value="Gazebo/WhiteGlow" />
+    <gazebo>
+        <plugin filename="libgazebo_ros_control.so" name="control"/>
+    </gazebo>
+    <gazebo reference="front_bumper_plate_left_link">
+        <material>${bumper_color}</material>
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <selfCollide>true</selfCollide>
+        <gravity>true</gravity>
+    </gazebo>
+    <gazebo reference="front_bumper_plate_right_link">
+        <material>${bumper_color}</material>
+        <mu1>0.9</mu1>
+        <mu2>0.9</mu2>
+        <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="front_bumper_bracket_left_link">
+        <material>${bracket_color}</material>
+        <mu1>0.9</mu1>
+        <mu2>0.9</mu2>
+        <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="front_bumper_bracket_right_link">
+        <material>${bracket_color}</material>
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <selfCollide>true</selfCollide>
+    </gazebo>
+
+    <sensor name="front_bumper_left" type="contact">
+        <selfCollide>true</selfCollide>
+        <alwaysOn>true</alwaysOn>
+        <updateRate>15.0</updateRate>
+        <material>Gazebo/WhiteGlow</material>
+        <contact>
+            <collision>front_bumper_plate_left_link_collision</collision>
+        </contact>
+        <plugin name="gazebo_ros_bumper_controller" filename="libgazebo_ros_bumper.so">
+            <bumperTopicName>bumper_vals</bumperTopicName>
+            <frameName>world</frameName>
+        </plugin>
+    </sensor>
+
+    <sensor name="front_bumper_right" type="contact">
+        <selfCollide>true</selfCollide>
+        <alwaysOn>true</alwaysOn>
+        <updateRate>15.0</updateRate>
+        <material>Gazebo/WhiteGlow</material>
+        <contact>
+            <collision>front_bumper_plate_right_link_collision</collision>
+        </contact>
+        <plugin name="gazebo_ros_bumper_controller" filename="libgazebo_ros_bumper.so">
+            <bumperTopicName>bumper_vals</bumperTopicName>
+            <frameName>world</frameName>
+        </plugin>
+    </sensor>
+
+</robot>
