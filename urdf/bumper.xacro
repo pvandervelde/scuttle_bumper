@@ -16,7 +16,7 @@
             </geometry>
             <material name="silver"/>
         </visual>
-        <collision name="front_bumper_plate_left_link">
+        <collision name="front_bumper_plate_left_cl">
             <origin rpy="0 0 0" xyz="0.10539999389648432 0 0.084749938964843793"/>
             <geometry>
             <mesh filename="package://scuttle_bumper/meshes/scuttle_bumper_plate_left.stl" scale="0.001 0.001 0.001"/>
@@ -37,7 +37,7 @@
             </geometry>
             <material name="silver"/>
         </visual>
-        <collision name="front_bumper_plate_right_link">
+        <collision name="front_bumper_plate_right_cl">
             <origin rpy="0 0 0" xyz="0.10539999389648432 0 0.084749938964843793"/>
             <geometry>
             <mesh filename="package://scuttle_bumper/meshes/scuttle_bumper_plate_right.stl" scale="0.001 0.001 0.001"/>

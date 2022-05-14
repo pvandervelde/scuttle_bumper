@@ -29,32 +29,38 @@
         <selfCollide>true</selfCollide>
     </gazebo>
 
-    <sensor name="front_bumper_left" type="contact">
-        <selfCollide>true</selfCollide>
-        <alwaysOn>true</alwaysOn>
-        <updateRate>15.0</updateRate>
-        <material>Gazebo/WhiteGlow</material>
-        <contact>
-            <collision>front_bumper_plate_left_link_collision</collision>
-        </contact>
-        <plugin name="gazebo_ros_bumper_controller_front_left" filename="libgazebo_ros_bumper.so">
-            <bumperTopicName>bumper_vals</bumperTopicName>
-            <frameName>world</frameName>
-        </plugin>
-    </sensor>
+    <gazebo reference="front_bumper_plate_left_link">
+        <sensor name="front_bumper_left" type="contact">
+            <selfCollide>true</selfCollide>
+            <alwaysOn>true</alwaysOn>
+            <updateRate>15.0</updateRate>
+            <material>Gazebo/WhiteGlow</material>
+            <contact>
+                <collision>front_bumper_plate_left_cl</collision>
+                <topic>/front_left_bumper_contact</topic>
+            </contact>
+            <plugin name="gazebo_ros_bumper_controller_front_left" filename="libgazebo_ros_bumper.so">
+                <bumperTopicName>bumper_vals</bumperTopicName>
+                <frameName>front_bumper_plate_left_link</frameName>
+            </plugin>
+        </sensor>
+    </gazebo>
 
-    <sensor name="front_bumper_right" type="contact">
-        <selfCollide>true</selfCollide>
-        <alwaysOn>true</alwaysOn>
-        <updateRate>15.0</updateRate>
-        <material>Gazebo/WhiteGlow</material>
-        <contact>
-            <collision>front_bumper_plate_right_link_collision</collision>
-        </contact>
-        <plugin name="gazebo_ros_bumper_controller_front_right" filename="libgazebo_ros_bumper.so">
-            <bumperTopicName>bumper_vals</bumperTopicName>
-            <frameName>world</frameName>
-        </plugin>
-    </sensor>
+    <gazebo reference="front_bumper_plate_right_link">
+        <sensor name="front_bumper_right" type="contact">
+            <selfCollide>true</selfCollide>
+            <alwaysOn>true</alwaysOn>
+            <updateRate>15.0</updateRate>
+            <material>Gazebo/WhiteGlow</material>
+            <contact>
+                <collision>front_bumper_plate_right_cl</collision>
+                <topic>/front_right_bumper_contact</topic>
+            </contact>
+            <plugin name="gazebo_ros_bumper_controller_front_right" filename="libgazebo_ros_bumper.so">
+                <bumperTopicName>bumper_vals</bumperTopicName>
+                <frameName>front_bumper_plate_right_link</frameName>
+            </plugin>
+        </sensor>
+    </gazebo>
 
 </robot>
