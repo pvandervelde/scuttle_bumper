@@ -36,8 +36,7 @@
             <updateRate>15.0</updateRate>
             <material>Gazebo/WhiteGlow</material>
             <contact>
-                <collision>front_bumper_plate_left_cl</collision>
-                <topic>/front_left_bumper_contact</topic>
+                <collision>base_link_fixed_joint_lump__front_bumper_plate_left_cl_collision_3</collision>
             </contact>
             <plugin name="gazebo_ros_bumper_controller_front_left" filename="libgazebo_ros_bumper.so">
                 <bumperTopicName>bumper_vals</bumperTopicName>
@@ -53,8 +52,7 @@
             <updateRate>15.0</updateRate>
             <material>Gazebo/WhiteGlow</material>
             <contact>
-                <collision>front_bumper_plate_right_cl</collision>
-                <topic>/front_right_bumper_contact</topic>
+                <collision>base_link_fixed_joint_lump__front_bumper_plate_right_cl_collision_5</collision>
             </contact>
             <plugin name="gazebo_ros_bumper_controller_front_right" filename="libgazebo_ros_bumper.so">
                 <bumperTopicName>bumper_vals</bumperTopicName>
