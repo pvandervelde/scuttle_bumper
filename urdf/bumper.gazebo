@@ -37,10 +37,10 @@
             <material>Gazebo/WhiteGlow</material>
             <contact>
                 <collision>front_bumper_plate_left_cl</collision>
-                <topic>scuttle/contact</topic>
+                <topic>bumper_contact</topic>
             </contact>
             <plugin name="gazebo_ros_bumper_controller_front_left" filename="libgazebo_ros_bumper.so">
-                <bumperTopicName>bumper_vals</bumperTopicName>
+                <bumperTopicName>scuttle_bumper</bumperTopicName>
                 <frameName>front_bumper_plate_left_link</frameName>
             </plugin>
         </sensor>
@@ -54,10 +54,10 @@
             <material>Gazebo/WhiteGlow</material>
             <contact>
                 <collision>front_bumper_plate_right_cl</collision>
-                <topic>scuttle/contact</topic>
+                <topic>bumper_contact</topic>
             </contact>
             <plugin name="gazebo_ros_bumper_controller_front_right" filename="libgazebo_ros_bumper.so">
-                <bumperTopicName>bumper_vals</bumperTopicName>
+                <bumperTopicName>scuttle_bumper</bumperTopicName>
                 <frameName>front_bumper_plate_right_link</frameName>
             </plugin>
         </sensor>
