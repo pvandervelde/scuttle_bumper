@@ -1,0 +1,53 @@
+<launch>
+    <!--
+        Indicates if ROS is running on a physical SCUTTLE (value = true) or a virtual one
+        (value = false), e.g. when running in Gazebo.
+    -->
+    <arg name="is_physical" default="true"/>
+
+    <!--
+        When we're in Gazebo ...
+    -->
+    <group unless="$(arg is_physical)">
+        <!--
+            Start the translation node that translates Gazebo contact sensor responses to
+            scuttle bumper responses
+        -->
+        <!-- Left hand front bumper -->
+        <node
+            pkg="scuttle_bumper"
+            type="gazebo_contact_sensor_translator"
+            name="scuttle/sensor/bumper/gazebo_translator_front_left"
+        >
+            <param name="bumper_id" value="1" />
+            <param name="bumper_name" value="front-left" />
+
+            <!-- Remap the subscription topic to point to the topic for the front left bumper -->
+            <remap from="scuttle/sensor/bumper/front_left_gazebo" to="scuttle/sensor/bumper_gazebo" />
+            <!-- Remap the publishing topic -->
+            <remap from="scuttle/sensor/bumper/states" to="scuttle/sensor/bumper/states" />
+        </node>
+
+        <!-- Right hand front bumper -->
+        <node
+            pkg="scuttle_bumper"
+            type="gazebo_contact_sensor_translator"
+            name="scuttle/sensor/bumper/gazebo_translator_front_right"
+        >
+            <param name="bumper_id" value="2" />
+            <param name="bumper_name" value="front-right" />
+
+            <remap from="scuttle/sensor/bumper/front_right_gazebo" to="scuttle/sensor/bumper_gazebo" />
+            <!-- Remap the publishing topic -->
+            <remap from="scuttle/sensor/bumper/states" to="scuttle/sensor/bumper/states" />
+        </node>
+    </group>
+
+    <group if="$(arg is_physical)">
+        <!--
+            Start the bumper node that connects to the RPi GPIO pins to listen for
+
+        -->
+        <node name="scuttle_driver" pkg="scuttle_driver" type="scuttle_driver.py" output="screen"/>
+    </group>
+</launch>
