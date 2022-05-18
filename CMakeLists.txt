@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   tf2
+  scuttle_ros_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -109,7 +110,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES scuttle_bumper
-#  CATKIN_DEPENDS nav_msgs roscpp rospy scuttle_description sensor_msgs std_msgs tf2
+  CATKIN_DEPENDS nav_msgs roscpp rospy scuttle_description sensor_msgs std_msgs tf2 scuttle_ros_msgs
 #  DEPENDS system_lib
 )
 
