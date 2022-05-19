@@ -32,7 +32,7 @@
 
         <!-- Right hand front bumper -->
         <node
-            name="scuttle/sensor/bumper/gazebo_translator_front_right"
+            name="gazebo_translator_front_right"
             ns="scuttle/sensor/bumper"
             pkg="scuttle_bumper"
             respawn="true"
