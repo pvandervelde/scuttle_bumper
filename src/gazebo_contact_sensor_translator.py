@@ -30,13 +30,16 @@ class GazeboContactSensorTranslator(object):
         self.rate = rospy.Rate(10)
 
     def monitor_bumper_callback(self, msg):
+        rospy.logdebug("Received gazebo contact message with state %s [%d]", msg, len(msg.states))
         # If there are states, then we have a contact, i.e. the bumper hit something. We don't
         # care what we hit, at which angle or force etc. etc.. We just care we hit something
         #
         # Note setting an integer should be thread safe in Python so no need for a threading lock.
         if msg.states:
+            rospy.logdebug("Gazebo message indicates switch closed")
             self.gazebo_bumper_state = ContactSwitch.SWITCH_CLOSED # Should this be depressed / engaged?
         else:
+            rospy.logdebug("Gazebo message indicates switch open")
             self.gazebo_bumper_state = ContactSwitch.SWITCH_OPEN # Should this be unpressed / disengaged?
 
 
