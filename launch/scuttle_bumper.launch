@@ -15,9 +15,11 @@
         -->
         <!-- Left hand front bumper -->
         <node
+            name="gazebo_translator_front_left"
+            ns="scuttle/sensor/bumper"
             pkg="scuttle_bumper"
+            respawn="true"
             type="gazebo_contact_sensor_translator"
-            name="scuttle/sensor/bumper/gazebo_translator_front_left"
         >
             <param name="bumper_id" value="1" />
             <param name="bumper_name" value="front-left" />
@@ -30,9 +32,11 @@
 
         <!-- Right hand front bumper -->
         <node
-            pkg="scuttle_bumper"
-            type="gazebo_contact_sensor_translator"
             name="scuttle/sensor/bumper/gazebo_translator_front_right"
+            ns="scuttle/sensor/bumper"
+            pkg="scuttle_bumper"
+            respawn="true"
+            type="gazebo_contact_sensor_translator"
         >
             <param name="bumper_id" value="2" />
             <param name="bumper_name" value="front-right" />
