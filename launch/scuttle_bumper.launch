@@ -19,7 +19,7 @@
             ns="scuttle/sensor/bumper"
             pkg="scuttle_bumper"
             respawn="true"
-            type="gazebo_contact_sensor_translator"
+            type="gazebo_contact_sensor_translator.py"
         >
             <param name="bumper_id" value="1" />
             <param name="bumper_name" value="front-left" />
@@ -36,7 +36,7 @@
             ns="scuttle/sensor/bumper"
             pkg="scuttle_bumper"
             respawn="true"
-            type="gazebo_contact_sensor_translator"
+            type="gazebo_contact_sensor_translator.py"
         >
             <param name="bumper_id" value="2" />
             <param name="bumper_name" value="front-right" />
