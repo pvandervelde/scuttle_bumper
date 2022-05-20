@@ -22,7 +22,7 @@ class GazeboContactSensorTranslator(object):
         self.bumper_name = rospy.get_param('~bumper_name')
 
         # Listen for the gazebo bumper state
-        self.gz_sub = rospy.Subscriber('scuttle/sensor/bumper_gazebo', ContactsState, self.monitor_bumper_callback)
+        self.gz_sub = rospy.Subscriber('scuttle/sensor/bumper/gazebo', ContactsState, self.monitor_bumper_callback)
 
         # Publish the scuttle relevant bumper state
         self.bumper_pub = rospy.Publisher('scuttle/sensor/bumper/states', ContactSwitch)

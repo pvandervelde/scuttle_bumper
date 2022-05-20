@@ -25,9 +25,9 @@
             <param name="bumper_name" value="front-left" />
 
             <!-- Remap the subscription topic to point to the topic for the front left bumper -->
-            <remap from="bumper_gazebo" to="front_left_gazebo" />
+            <remap from="/scuttle/sensor/bumper/gazebo" to="front_left_gazebo" />
             <!-- Remap the publishing topic -->
-            <remap from="states" to="states" />
+            <remap from="/scuttle/sensor/bumper/states" to="states" />
         </node>
 
         <!-- Right hand front bumper -->
@@ -41,9 +41,9 @@
             <param name="bumper_id" value="2" />
             <param name="bumper_name" value="front-right" />
 
-            <remap from="bumper_gazebo" to="front_right_gazebo" />
+            <remap from="/scuttle/sensor/bumper/gazebo" to="front_right_gazebo" />
             <!-- Remap the publishing topic -->
-            <remap from="states" to="states" />
+            <remap from="/scuttle/sensor/bumper/states" to="states" />
         </node>
     </group>
 
