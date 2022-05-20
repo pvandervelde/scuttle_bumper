@@ -25,7 +25,7 @@
             <param name="bumper_name" value="front-left" />
 
             <!-- Remap the subscription topic to point to the topic for the front left bumper -->
-            <remap from="scuttle/sensor/bumper/front_left_gazebo" to="scuttle/sensor/bumper_gazebo" />
+            <remap from="scuttle/sensor/bumper_gazebo" to="scuttle/sensor/bumper/front_left_gazebo" />
             <!-- Remap the publishing topic -->
             <remap from="scuttle/sensor/bumper/states" to="scuttle/sensor/bumper/states" />
         </node>
