@@ -39,7 +39,7 @@
                 <collision>base_link_fixed_joint_lump__front_bumper_plate_left_cl_collision_3</collision>
             </contact>
             <plugin name="gazebo_ros_bumper_controller_front_left" filename="libgazebo_ros_bumper.so">
-                <bumperTopicName>scuttle/sensor/bumper/front_left_gazebo</bumperTopicName>
+                <bumperTopicName>/scuttle/sensor/bumper/front_left_gazebo</bumperTopicName>
                 <frameName>front_bumper_plate_left_link</frameName>
             </plugin>
         </sensor>
@@ -55,7 +55,7 @@
                 <collision>base_link_fixed_joint_lump__front_bumper_plate_right_cl_collision_5</collision>
             </contact>
             <plugin name="gazebo_ros_bumper_controller_front_right" filename="libgazebo_ros_bumper.so">
-                <bumperTopicName>scuttle/sensor/bumper/front_right_gazebo</bumperTopicName>
+                <bumperTopicName>/scuttle/sensor/bumper/front_right_gazebo</bumperTopicName>
                 <frameName>front_bumper_plate_right_link</frameName>
             </plugin>
         </sensor>
