@@ -8,15 +8,12 @@ from gazebo_msgs.msg import ContactsState, ContactState
 
 # SCUTTLE
 from scuttle_ros_msgs.msg import ContactSwitch
+from debounce import Debounce
 
 # Translate the Gazebo contact sensor messages to the scuttle ContactSwitch messages
 class GazeboContactSensorTranslator(object):
     def __init__(self):
         rospy.init_node('gazebo_contact_sensor_translator')
-
-        # On start-up assume the bumper isn't touching anything. If it is then we'll be notified
-        # soon enough.
-        self.gazebo_bumper_state = ContactSwitch.SWITCH_OPEN
 
         self.bumper_id = rospy.get_param('~bumper_id')
         self.bumper_name = rospy.get_param('~bumper_name')
@@ -27,29 +24,45 @@ class GazeboContactSensorTranslator(object):
         # Publish the scuttle relevant bumper state
         self.bumper_pub = rospy.Publisher('/scuttle/sensor/bumper/states', ContactSwitch)
 
-        self.rate = rospy.Rate(10)
+        # Setup debouncing for the Gazebo contact switch. It turns out that the Gazebo contact switch
+        # occasionally reports a non-contact during a period of contact. It's often only a single
+        # loss of contact, possibly due to the fact that all Gazebo sensors have noise
+        debounce_time_in_seconds = rospy.get_param('~gazebo_contact_debounce_time_in_seconds')
+        sample_frequency_in_hz = rospy.get_param('~gazebo_contact_sample_frequency_in_hz')
+
+        # On start-up assume the bumper isn't touching anything. If it is then we'll be notified
+        # soon enough.
+        self.debounce = Debounce(
+            debounce_time_in_seconds,
+            sample_frequency_in_hz,
+            ContactSwitch.SWITCH_OPEN,
+            ContactSwitch.SWITCH_CLOSED,
+            ContactSwitch.SWITCH_OPEN)
+
+        # Publish at the same rate Gazebo publishes
+        self.rate = rospy.Rate(sample_frequency_in_hz)
 
     def monitor_bumper_callback(self, msg):
         rospy.logdebug("Received gazebo contact message with state %s [%d]", msg, len(msg.states))
+
         # If there are states, then we have a contact, i.e. the bumper hit something. We don't
         # care what we hit, at which angle or force etc. etc.. We just care we hit something
         #
         # Note setting an integer should be thread safe in Python so no need for a threading lock.
         if msg.states:
             rospy.logdebug("Gazebo message indicates switch closed")
-            self.gazebo_bumper_state = ContactSwitch.SWITCH_CLOSED # Should this be depressed / engaged?
+            self.debounce.record_high_value()
         else:
             rospy.logdebug("Gazebo message indicates switch open")
-            self.gazebo_bumper_state = ContactSwitch.SWITCH_OPEN # Should this be unpressed / disengaged?
+            self.debounce.record_low_value()
 
 
     def publish(self):
-
         while not rospy.is_shutdown():
             msg = ContactSwitch()
             msg.id = self.bumper_id
             msg.name = self.bumper_name
-            msg.state = self.gazebo_bumper_state
+            msg.state = self.debounce.current_value()
 
             self.bumper_pub.publish(msg)
 
