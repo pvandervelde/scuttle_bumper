@@ -27,8 +27,13 @@ class GazeboContactSensorTranslator(object):
         # Setup debouncing for the Gazebo contact switch. It turns out that the Gazebo contact switch
         # occasionally reports a non-contact during a period of contact. It's often only a single
         # loss of contact, possibly due to the fact that all Gazebo sensors have noise
-        debounce_time_in_seconds = rospy.get_param('~gazebo_contact_debounce_time_in_seconds')
-        sample_frequency_in_hz = rospy.get_param('~gazebo_contact_sample_frequency_in_hz')
+        #
+        # Default debounce time for switches is about 20 milliseconds, but we'll use a bit more
+        # time here so that we get at least a few messages before saying that we have a bounce,
+        # see: https://www.eejournal.com/article/ultimate-guide-to-switch-debounce-part-4/
+        # Default contact frequency is about 15 Hz
+        debounce_time_in_seconds = rospy.get_param('~gazebo_contact_debounce_time_in_seconds', 0.02)
+        sample_frequency_in_hz = rospy.get_param('~gazebo_contact_sample_frequency_in_hz', 15)
 
         # On start-up assume the bumper isn't touching anything. If it is then we'll be notified
         # soon enough.

@@ -23,6 +23,9 @@
         >
             <param name="bumper_id" value="1" />
             <param name="bumper_name" value="front-left" />
+            <param name="gazebo_contact_debounce_time_in_seconds" value="0.2" />
+            <!-- This value should match the value in the `bumper.gazebo` URDF file -->
+            <param name="gazebo_contact_sample_frequency_in_hz" value="15" />
 
             <!-- Remap the subscription topic to point to the topic for the front left bumper -->
             <remap from="/scuttle/sensor/bumper/gazebo" to="front_left_gazebo" />
@@ -40,6 +43,9 @@
         >
             <param name="bumper_id" value="2" />
             <param name="bumper_name" value="front-right" />
+            <param name="gazebo_contact_debounce_time_in_seconds" value="0.2" />
+            <!-- This value should match the value in the `bumper.gazebo` URDF file -->
+            <param name="gazebo_contact_sample_frequency_in_hz" value="15" />
 
             <remap from="/scuttle/sensor/bumper/gazebo" to="front_right_gazebo" />
             <!-- Remap the publishing topic -->
