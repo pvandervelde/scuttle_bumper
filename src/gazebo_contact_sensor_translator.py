@@ -24,7 +24,6 @@ class GazeboContactSensorTranslator(object):
 
         # Publish the scuttle relevant bumper state
         self.bumper_pub = rospy.Publisher('/scuttle/sensor/bumper/states', ContactSwitch, queue_size=10)
-        self.bumper_gazebo_pub = rospy.Publisher('/scuttle/sensor/bumper/states_gz_{name}'.format(name=self.bumper_name), Int16, queue_size=10)
 
         # Setup debouncing for the Gazebo contact switch. It turns out that the Gazebo contact switch
         # occasionally reports a non-contact during a period of contact. It's often only a single
@@ -59,11 +58,9 @@ class GazeboContactSensorTranslator(object):
         if msg.states:
             rospy.logdebug("Gazebo message indicates switch closed")
             self.debounce.record_high_value()
-            self.bumper_gazebo_pub.publish(ContactSwitch.SWITCH_CLOSED)
         else:
             rospy.logdebug("Gazebo message indicates switch open")
             self.debounce.record_low_value()
-            self.bumper_gazebo_pub.publish(ContactSwitch.SWITCH_OPEN)
 
     def publish(self):
         while not rospy.is_shutdown():
