@@ -21,16 +21,18 @@
             respawn="true"
             type="gazebo_contact_sensor_translator.py"
         >
-            <param name="bumper_id" value="1" />
+            <param name="bumper_frame_id" value="front_bumper_plate_left_link" />
             <param name="bumper_name" value="front-left" />
-            <param name="gazebo_contact_debounce_time_in_seconds" value="0.3" />
+            <param name="bumper_section_width" type="double" value="0.230" />
+            <param name="bumper_section_height" type="double" value="0.080" />
+            <param name="gazebo_contact_debounce_time_in_seconds" type="double" value="0.3" />
             <!-- This value should match the value in the `bumper.gazebo` URDF file -->
-            <param name="gazebo_contact_sample_frequency_in_hz" value="15" />
+            <param name="gazebo_contact_sample_frequency_in_hz" type="int" value="15" />
 
             <!-- Remap the subscription topic to point to the topic for the front left bumper -->
             <remap from="/scuttle/sensor/bumper/gazebo" to="front_left_gazebo" />
             <!-- Remap the publishing topic -->
-            <remap from="/scuttle/sensor/bumper/states" to="states" />
+            <remap from="/scuttle/sensor/bumper/events" to="events" />
         </node>
 
         <!-- Right hand front bumper -->
@@ -41,15 +43,17 @@
             respawn="true"
             type="gazebo_contact_sensor_translator.py"
         >
-            <param name="bumper_id" value="2" />
+            <param name="bumper_frame_id" value="front_bumper_plate_right_link" />
             <param name="bumper_name" value="front-right" />
-            <param name="gazebo_contact_debounce_time_in_seconds" value="0.3" />
+            <param name="bumper_section_width" type="double" value="0.230" />
+            <param name="bumper_section_height" type="double" value="0.080" />
+            <param name="gazebo_contact_debounce_time_in_seconds" type="double" value="0.3" />
             <!-- This value should match the value in the `bumper.gazebo` URDF file -->
-            <param name="gazebo_contact_sample_frequency_in_hz" value="15" />
+            <param name="gazebo_contact_sample_frequency_in_hz" type="int" value="15" />
 
             <remap from="/scuttle/sensor/bumper/gazebo" to="front_right_gazebo" />
             <!-- Remap the publishing topic -->
-            <remap from="/scuttle/sensor/bumper/states" to="states" />
+            <remap from="/scuttle/sensor/bumper/events" to="events" />
         </node>
     </group>
 
@@ -58,6 +62,5 @@
             Start the bumper node that connects to the RPi GPIO pins to listen for
 
         -->
-        <node name="scuttle_driver" pkg="scuttle_driver" type="scuttle_driver.py" output="screen"/>
     </group>
 </launch>
