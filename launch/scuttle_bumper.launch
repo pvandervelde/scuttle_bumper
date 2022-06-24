@@ -13,7 +13,10 @@
             Start the translation node that translates Gazebo contact sensor responses to
             scuttle bumper responses
         -->
-        <!-- Left hand front bumper -->
+        <!--
+            The Gazebo contact sensor translator, which translates Gazebo ContactSensor events
+            in to BumperEvents
+        -->
         <node
             name="gazebo_translator_front_left"
             ns="scuttle/sensor/bumper"
@@ -30,28 +33,8 @@
             <param name="gazebo_contact_sample_frequency_in_hz" type="int" value="15" />
 
             <!-- Remap the subscription topic to point to the topic for the front left bumper -->
-            <remap from="/scuttle/sensor/bumper/gazebo" to="front_left_gazebo" />
-            <!-- Remap the publishing topic -->
-            <remap from="/scuttle/sensor/bumper/events" to="events" />
-        </node>
-
-        <!-- Right hand front bumper -->
-        <node
-            name="gazebo_translator_front_right"
-            ns="scuttle/sensor/bumper"
-            pkg="scuttle_bumper"
-            respawn="true"
-            type="gazebo_contact_sensor_translator.py"
-        >
-            <param name="bumper_frame_id" value="front_bumper_plate_right_link" />
-            <param name="bumper_name" value="front-right" />
-            <param name="bumper_section_width" type="double" value="0.230" />
-            <param name="bumper_section_height" type="double" value="0.080" />
-            <param name="gazebo_contact_debounce_time_in_seconds" type="double" value="0.3" />
-            <!-- This value should match the value in the `bumper.gazebo` URDF file -->
-            <param name="gazebo_contact_sample_frequency_in_hz" type="int" value="15" />
-
-            <remap from="/scuttle/sensor/bumper/gazebo" to="front_right_gazebo" />
+            <remap from="/scuttle/sensor/bumper/gazebo/front/left" to="front_left_gazebo" />
+            <remap from="/scuttle/sensor/bumper/gazebo/front/right" to="front_right_gazebo" />
             <!-- Remap the publishing topic -->
             <remap from="/scuttle/sensor/bumper/events" to="events" />
         </node>
@@ -63,4 +46,24 @@
 
         -->
     </group>
+
+    <!--
+        Bumper translator node
+
+        Used to translate the messages from the bumper sensors to an obstacle message that can be
+        handled further down the line.
+    -->
+    <node
+        name="bumper_event_translator"
+        ns="scuttle/sensor/bumper"
+        pkg="scuttle_bumper"
+        respawn="true"
+        type="scuttle_bumper_translator.py"
+    >
+        <param name="update_frequency_in_hz" type="int" value="15" />
+
+        <remap from="/scuttle/sensor/bumper/events" to="events" />
+        <!-- Remap the publishing topic -->
+        <remap from="/scuttle/sensor/obstacle" to="events" />
+    </node>
 </launch>

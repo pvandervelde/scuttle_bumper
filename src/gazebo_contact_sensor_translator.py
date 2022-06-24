@@ -23,7 +23,8 @@ class GazeboContactSensorTranslator(object):
         self.bumper_height = rospy.get_param('~bumper_section_height')
 
         # Listen for the gazebo bumper state
-        self.gz_sub = rospy.Subscriber('/scuttle/sensor/bumper/gazebo', ContactsState, self.monitor_bumper_callback)
+        self.gz_left_sub = rospy.Subscriber('/scuttle/sensor/bumper/gazebo/front/left', ContactsState, self.monitor_left_bumper_callback)
+        self.gz_right_sub = rospy.Subscriber('/scuttle/sensor/bumper/gazebo/front/right', ContactsState, self.monitor_right_bumper_callback)
 
         # Publish the scuttle relevant bumper state
         self.bumper_pub = rospy.Publisher('/scuttle/sensor/bumper/events', BumperEvent, queue_size=10)
@@ -41,59 +42,83 @@ class GazeboContactSensorTranslator(object):
 
         # On start-up assume the bumper isn't touching anything. If it is then we'll be notified
         # soon enough.
-        self.debounce = Debounce(
+        self.left_debounce = Debounce(
             debounce_time_in_seconds,
             sample_frequency_in_hz,
             BumperEvent.NO_CONTACT,
             BumperEvent.CONTACT,
             BumperEvent.NO_CONTACT)
 
+        self.right_debounce = Debounce(
+            debounce_time_in_seconds,
+            sample_frequency_in_hz,
+            BumperEvent.RELEASED,
+            BumperEvent.PRESSED,
+            BumperEvent.RELEASED)
+
         # Publish at the same rate Gazebo publishes
         self.rate = rospy.Rate(sample_frequency_in_hz)
 
-    def monitor_bumper_callback(self, msg: ContactsState):
-        rospy.logdebug("Received gazebo contact message with state %s", msg)
+    def monitor_left_bumper_callback(self, msg: ContactsState):
+        rospy.logdebug("Received contact message from left bumper with state %s", msg)
 
         # If there are states, then we have a contact, i.e. the bumper hit something. We don't
         # care what we hit, at which angle or force etc. etc.. We just care we hit something
         #
         # Note setting an integer should be thread safe in Python so no need for a threading lock.
         if msg.states:
-            rospy.logdebug("Gazebo message indicates switch closed")
-            self.debounce.record_high_value()
+            rospy.logdebug("Gazebo message indicates left bumper hit")
+            self.left_debounce.record_high_value()
         else:
-            rospy.logdebug("Gazebo message indicates switch open")
-            self.debounce.record_low_value()
+            rospy.logdebug("Gazebo message indicates left bumper released")
+            self.left_debounce.record_low_value()
+
+    def monitor_right_bumper_callback(self, msg: ContactsState):
+        rospy.logdebug("Received contact message from right bumper with state %s", msg)
+
+        # If there are states, then we have a contact, i.e. the bumper hit something. We don't
+        # care what we hit, at which angle or force etc. etc.. We just care we hit something
+        #
+        # Note setting an integer should be thread safe in Python so no need for a threading lock.
+        if msg.states:
+            rospy.logdebug("Gazebo message indicates right bumper hit")
+            self.right_debounce.record_high_value()
+        else:
+            rospy.logdebug("Gazebo message indicates right bumper released")
+            self.right_debounce.record_low_value()
 
     def publish(self):
         while not rospy.is_shutdown():
+            left_bumper_state = self.left_debounce.current_value()
+            right_bumper_state = self.right_debounce.current_value()
+
+            location = 0
+            state = BumperEvent.RELEASED
+            if left_bumper_state == BumperEvent.PRESSED:
+                if right_bumper_state == BumperEvent.PRESSED:
+                    # Both left and right pressed -> obstacle probably in the middle
+                    location = BumperEvent.CENTER
+                    state = BumperEvent.PRESSED
+                else:
+                    # Left only pressed
+                    location = BumperEvent.LEFT
+                    state = BumperEvent.PRESSED
+            else:
+                if right_bumper_state == BumperEvent.PRESSED:
+                    # right only pressed
+                    location = BumperEvent.RIGHT
+                    state = BumperEvent.PRESSED
+                else:
+                    # Neither pressed
+                    location = BumperEvent.NONE
+                    state = BumperEvent.RELEASED
+
             msg = BumperEvent()
             msg.header.stamp = rospy.Time.now()
             msg.header.frame_id = self.bumper_frame_id # coordinate frame of the bumper
 
-            msg.state = self.debounce.current_value()
-
-            # We assume that the object is placed in contact with the bumper
-            # when the bumper is not compressed. This means that the contact is
-            # several mm further in the x-direction than it actually is.
-            #
-            # Note that the bumper section for which we get signals is half the
-            # full bumper.
-            #
-            # We will use a line type obstacle that is about 1/3 the size of the
-            # bumper section. We don't exactly know where the object is, it
-            # could be in the middle of the total bumper, right on top of
-            # the contacts or even out on the edge. There is no way to figure it
-            # out, so we just assume the bumper roughly got hit near the contacts.
-            #
-            # We assume that the bumpers are placed perpendicular to the driving
-            # axes.
-            msg.contacted_object = Polygon(
-                [
-                    Point(x=0.0, y=-1/6 * self.bumper_width, z=0.0),
-                    Point(x=0.0, y=1/6 * self.bumper_width, z=0.0)
-                ]
-            )
+            msg.bumper = location
+            msg.state = state
 
             self.bumper_pub.publish(msg)
 
