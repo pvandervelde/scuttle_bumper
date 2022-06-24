@@ -46,24 +46,4 @@
 
         -->
     </group>
-
-    <!--
-        Bumper translator node
-
-        Used to translate the messages from the bumper sensors to an obstacle message that can be
-        handled further down the line.
-    -->
-    <node
-        name="bumper_event_translator"
-        ns="scuttle/sensor/bumper"
-        pkg="scuttle_bumper"
-        respawn="true"
-        type="scuttle_bumper_translator.py"
-    >
-        <param name="update_frequency_in_hz" type="int" value="15" />
-
-        <remap from="/scuttle/sensor/bumper/events" to="events" />
-        <!-- Remap the publishing topic -->
-        <remap from="/scuttle/sensor/obstacle" to="events" />
-    </node>
 </launch>
