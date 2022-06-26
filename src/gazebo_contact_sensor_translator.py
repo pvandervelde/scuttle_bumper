@@ -45,9 +45,9 @@ class GazeboContactSensorTranslator(object):
         self.left_debounce = Debounce(
             debounce_time_in_seconds,
             sample_frequency_in_hz,
-            BumperEvent.NO_CONTACT,
-            BumperEvent.CONTACT,
-            BumperEvent.NO_CONTACT)
+            BumperEvent.RELEASED,
+            BumperEvent.PRESSED,
+            BumperEvent.RELEASED)
 
         self.right_debounce = Debounce(
             debounce_time_in_seconds,
