@@ -22,13 +22,6 @@ class GazeboContactSensorTranslator(object):
         self.bumper_width = rospy.get_param('~bumper_section_width')
         self.bumper_height = rospy.get_param('~bumper_section_height')
 
-        # Listen for the gazebo bumper state
-        self.gz_left_sub = rospy.Subscriber('/scuttle/sensor/bumper/gazebo/front/left', ContactsState, self.monitor_left_bumper_callback)
-        self.gz_right_sub = rospy.Subscriber('/scuttle/sensor/bumper/gazebo/front/right', ContactsState, self.monitor_right_bumper_callback)
-
-        # Publish the scuttle relevant bumper state
-        self.bumper_pub = rospy.Publisher('/scuttle/sensor/bumper/events', BumperEvent, queue_size=10)
-
         # Setup debouncing for the Gazebo contact switch. It turns out that the Gazebo contact switch
         # occasionally reports a non-contact during a period of contact. It's often only a single
         # loss of contact, possibly due to the fact that all Gazebo sensors have noise
@@ -58,6 +51,13 @@ class GazeboContactSensorTranslator(object):
 
         # Publish at the same rate Gazebo publishes
         self.rate = rospy.Rate(sample_frequency_in_hz)
+
+        # Publish the scuttle relevant bumper state
+        self.bumper_pub = rospy.Publisher('/scuttle/sensor/bumper/events', BumperEvent, queue_size=10)
+
+        # Listen for the gazebo bumper state
+        self.gz_left_sub = rospy.Subscriber('/scuttle/sensor/bumper/gazebo/front/left', ContactsState, self.monitor_left_bumper_callback)
+        self.gz_right_sub = rospy.Subscriber('/scuttle/sensor/bumper/gazebo/front/right', ContactsState, self.monitor_right_bumper_callback)
 
     def monitor_left_bumper_callback(self, msg: ContactsState):
         rospy.logdebug("Received contact message from left bumper with state %s", msg)
