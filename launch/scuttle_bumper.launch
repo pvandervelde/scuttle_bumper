@@ -6,6 +6,14 @@
     <arg name="is_physical" default="true"/>
 
     <!--
+        Topic redirection
+    -->
+    <arg name="cmd_vel_topic" default="/bumper_vel" />
+    <arg name="odom_topic" default="odom" />
+    <arg name="bumper_topic" default="events" />
+
+
+    <!--
         When we're in Gazebo ...
     -->
     <group unless="$(arg is_physical)">
@@ -18,16 +26,13 @@
             in to BumperEvents
         -->
         <node
-            name="gazebo_translator_front_left"
+            name="gazebo_translator"
             ns="scuttle/sensor/bumper"
             pkg="scuttle_bumper"
             respawn="true"
             type="gazebo_contact_sensor_translator.py"
         >
-            <param name="bumper_frame_id" value="front_bumper_plate_left_link" />
-            <param name="bumper_name" value="front-left" />
-            <param name="bumper_section_width" type="double" value="0.230" />
-            <param name="bumper_section_height" type="double" value="0.080" />
+            <param name="bumper_frame_id" value="chassis_link" />
             <param name="gazebo_contact_debounce_time_in_seconds" type="double" value="0.3" />
             <!-- This value should match the value in the `bumper.gazebo` URDF file -->
             <param name="gazebo_contact_sample_frequency_in_hz" type="int" value="15" />
@@ -36,7 +41,7 @@
             <remap from="/scuttle/sensor/bumper/gazebo/front/left" to="front_left_gazebo" />
             <remap from="/scuttle/sensor/bumper/gazebo/front/right" to="front_right_gazebo" />
             <!-- Remap the publishing topic -->
-            <remap from="/scuttle/sensor/bumper/events" to="events" />
+            <remap from="/scuttle/sensor/bumper/events" to="$(arg bumper_topic)" />
         </node>
     </group>
 
@@ -46,4 +51,23 @@
 
         -->
     </group>
+
+    <!--
+        Start the bumper navigator node which sends velocity commands based on bumper contacts
+    -->
+    <node
+        name="bumper_navigator"
+        ns="scuttle/navigation"
+        pkg="scuttle_bumper"
+        respawn="true"
+        type="bumper_navigator.py"
+    >
+        <!-- Remap the subscription topic to point to the topic for the front left bumper -->
+        <remap from="/scuttle/sensor/bumper/events" to="$(arg )" />
+        <remap from="odom" to="$(arg odom_topic)" />
+        <!-- Remap the publishing topic -->
+        <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />
+        <remap from="obstacles" to="$(arg obstacles_topic)" />
+    </node>
+
 </launch>

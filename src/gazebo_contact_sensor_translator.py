@@ -18,9 +18,6 @@ class GazeboContactSensorTranslator(object):
         rospy.init_node('gazebo_contact_sensor_translator')
 
         self.bumper_frame_id = rospy.get_param('~bumper_frame_id')
-        self.bumper_name = rospy.get_param('~bumper_name')
-        self.bumper_width = rospy.get_param('~bumper_section_width')
-        self.bumper_height = rospy.get_param('~bumper_section_height')
 
         # Setup debouncing for the Gazebo contact switch. It turns out that the Gazebo contact switch
         # occasionally reports a non-contact during a period of contact. It's often only a single
