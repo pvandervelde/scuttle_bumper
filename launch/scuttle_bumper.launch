@@ -42,7 +42,7 @@
             <remap from="/scuttle/sensor/bumper/gazebo/front/left" to="front_left_gazebo" />
             <remap from="/scuttle/sensor/bumper/gazebo/front/right" to="front_right_gazebo" />
             <!-- Remap the publishing topic -->
-            <remap from="/scuttle/sensor/bumper/events" to="$(arg bumper_topic)" />
+            <!--<remap from="/scuttle/sensor/bumper/events" to="$(arg bumper_topic)" />-->
         </node>
     </group>
 
@@ -64,7 +64,7 @@
         type="bumper_navigator.py"
     >
         <!-- Remap the subscription topic to point to the topic for the front left bumper -->
-        <remap from="/scuttle/sensor/bumper/events" to="$(arg )" />
+        <!--<remap from="/scuttle/sensor/bumper/events" to="$(arg )" />-->
         <remap from="odom" to="$(arg odom_topic)" />
         <!-- Remap the publishing topic -->
         <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />
