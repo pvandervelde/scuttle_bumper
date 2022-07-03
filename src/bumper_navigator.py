@@ -291,7 +291,7 @@ class ScuttleBumperNavigator(object):
         self.obstacle_sub = rospy.Subscriber('/scuttle/sensor/bumper/events', BumperEvent, self.monitor_obstacle_callback)
 
         # Keep track of the position of the robot
-        self.odometry_sub = rospy.Subscriber('/odometry', Odometry, self.monitor_odometry)
+        self.odometry_sub = rospy.Subscriber('/odom', Odometry, self.monitor_odometry)
 
         # Publish velocity commands in case we hit an obstacle
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)

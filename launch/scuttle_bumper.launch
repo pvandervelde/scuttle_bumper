@@ -67,9 +67,9 @@
 
         <!-- Remap the subscription topic to point to the topic for the front left bumper -->
         <!--<remap from="/scuttle/sensor/bumper/events" to="$(arg )" />-->
-        <remap from="odom" to="$(arg odom_topic)" />
+        <remap from="/odom" to="$(arg odom_topic)" />
         <!-- Remap the publishing topic -->
-        <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />
+        <remap from="/cmd_vel" to="$(arg cmd_vel_topic)" />
         <remap from="obstacles" to="$(arg obstacles_topic)" />
     </node>
 
