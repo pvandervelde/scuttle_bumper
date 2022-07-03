@@ -9,7 +9,7 @@
         Topic redirection
     -->
     <arg name="cmd_vel_topic" default="/bumper_vel" />
-    <arg name="odom_topic" default="odom" />
+    <arg name="odom_topic" default="/odom" />
     <arg name="bumper_topic" default="events" />
     <arg name="obstacles_topic" default="obstacles" />
 
