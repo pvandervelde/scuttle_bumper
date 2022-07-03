@@ -63,6 +63,8 @@
         respawn="true"
         type="bumper_navigator.py"
     >
+        <param name="robot_frame_id" value="chassis_link" />
+
         <!-- Remap the subscription topic to point to the topic for the front left bumper -->
         <!--<remap from="/scuttle/sensor/bumper/events" to="$(arg )" />-->
         <remap from="odom" to="$(arg odom_topic)" />
