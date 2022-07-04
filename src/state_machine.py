@@ -2,6 +2,7 @@
 
 # Python
 from __future__ import annotations
+from typing import Callable
 
 # ROS
 import rospy
@@ -35,22 +36,23 @@ class State(object):
 
 class StateMachine(object):
 
-    def __init__(self):
+    def __init__(self, log: Callable[[str], None]):
         self.state = None
         self.states = {}
+        self.log = log
 
     def add_state(self, state: State):
         self.states[state.name] = state
 
     def go_to_state(self, state_name: str):
         if self.state:
-            rospy.logdebug('TrajectorySupervisor - StateMachine: Exiting %s', self.state.name)
+            self.log('TrajectorySupervisor - StateMachine: Exiting {0}'.format(self.state.name))
             self.state.exit(self)
         self.state = self.states[state_name]
-        rospy.logdebug('TrajectorySupervisor - StateMachine: Entering %s', self.state.name)
+        self.log('TrajectorySupervisor - StateMachine: Entering {0}'.format(self.state.name))
         self.state.enter(self)
 
     def update(self):
         if self.state:
-            rospy.logdebug('TrajectorySupervisor - StateMachine: Updating %s', self.state.name)
+            self.log('TrajectorySupervisor - StateMachine: Updating {0}'.format(self.state.name))
             self.state.update(self)

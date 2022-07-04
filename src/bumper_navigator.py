@@ -108,8 +108,9 @@ class ScuttleMovingState(State):
 class ScuttleReversingState(State):
     state_name = 'reversing'
 
-    def __init__(self, publish_velocity: Callable[[Twist], None]):
+    def __init__(self, publish_velocity: Callable[[Twist], None], log: Callable[[str], None]):
         self.publish_velocity = publish_velocity
+        self.log = log
 
         self.frame_id = rospy.get_param('~robot_frame_id')
 
@@ -160,11 +161,15 @@ class ScuttleReversingState(State):
 
     def update(self, machine: StateMachine):
         if State.update(self, machine):
+            self.log('Updating reversing state ...')
+
             if self.avoiding_obstacle:
+                self.log('Updating reversing state: Avoiding obstacle...')
+
                 # Move backwards until we reach the requested distance moved
                 current_distance = self.distance(self.target_pose)
                 if current_distance > self.distance_tolerance:
-
+                    # Not far enough away, keep going backwards
                     linear_velocity = self.linear_vel(self.target_pose)
                     angular_velocity = self.angular_vel(self.target_pose)
 
@@ -177,12 +182,14 @@ class ScuttleReversingState(State):
                     twist.angular.y = 0
                     twist.angular.z = angular_velocity
 
+                    self.log('Reversing state: Updating velocity: [{0}, {1}]'.format(linear_velocity, angular_velocity))
                     self.publish_velocity(twist)
                 else:
                     # Backed up far enough. Stop the movement
                     self.avoiding_obstacle = False
                     self.target_pose = None
 
+                    self.log('Reversing state: Updating velocity to zero')
                     twist = Twist()
                     self.publish_velocity(twist)
             else:
@@ -281,7 +288,7 @@ class ScuttleBumperNavigator(object):
             ScuttleReversingState(self.publish_move_command)
         ]
 
-        self.machine = StateMachine()
+        self.machine = StateMachine(self.log)
         for state in self.states:
             self.machine.add_state(state)
 
@@ -300,6 +307,9 @@ class ScuttleBumperNavigator(object):
         # Publish at the given rate
         sample_frequency_in_hz = rospy.get_param('~update_frequency_in_hz', 15)
         self.rate = rospy.Rate(sample_frequency_in_hz)
+
+    def log(self, msg: str):
+        rospy.logdebug(msg)
 
     def monitor_obstacle_callback(self, msg: BumperEvent):
         bumper_state = msg.state
