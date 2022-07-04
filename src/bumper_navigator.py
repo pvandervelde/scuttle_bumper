@@ -75,10 +75,10 @@ class ScuttleStoppedState(State):
 
     def update(self, machine: StateMachine):
         if State.update(self, machine):
-            if self.velocity and is_not_zero_velocity(self.velocity):
-                if self.bumper_state == BumperEvent.PRESSED:
-                    machine.go_to_state(ScuttleReversingState.state_name)
-                else:
+            if self.bumper_state == BumperEvent.PRESSED:
+                machine.go_to_state(ScuttleReversingState.state_name)
+            else:
+                if self.velocity and is_not_zero_velocity(self.velocity):
                     machine.go_to_state(ScuttleMovingState.state_name)
 
 class ScuttleMovingState(State):
