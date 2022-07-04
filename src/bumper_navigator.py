@@ -285,7 +285,7 @@ class ScuttleBumperNavigator(object):
         self.states = [
             ScuttleStoppedState(),
             ScuttleMovingState(self.publish_move_command),
-            ScuttleReversingState(self.publish_move_command)
+            ScuttleReversingState(self.publish_move_command, self.log)
         ]
 
         self.machine = StateMachine(self.log)
