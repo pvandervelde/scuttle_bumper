@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Callable
 
 # ROS
-import rospy
 from nav_msgs.msg import Odometry
 
 class State(object):
