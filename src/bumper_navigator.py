@@ -6,9 +6,11 @@ from threading import Lock
 
 # ROS
 import rospy
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import PointCloud2, PointField
+import tf2_geometry_msgs
+from tf2_ros import Buffer, ConnectivityException, ExtrapolationException, LookupException, TransformListener
 
 # SCUTTLE
 from scuttle_ros_msgs.msg import BumperEvent
@@ -30,11 +32,17 @@ class ScuttleBumperNavigator(object):
         self.bumper_lock = Lock()
         self.velocity_lock = Lock()
 
+        self.frame_id = rospy.get_param('~robot_frame_id')
+
+        # Get the TF buffer so that we can translate between the odometry frame and the robot frame
+        self.tf_buffer = Buffer(rospy.Duration(100.0))
+        self.tf_listener = TransformListener(self.tf_buffer)
+
         # Create the state machine
         self.states = [
-            ScuttleStoppedState(self.is_bumper_pressed),
-            ScuttleMovingState(self.is_bumper_pressed),
-            ScuttleBumperObstacleAvoidingState(self.publish_move_command, self.log)
+            ScuttleStoppedState(BumperEvent.RELEASED, BumperEvent.NONE, self.is_bumper_pressed),
+            ScuttleMovingState(BumperEvent.RELEASED, BumperEvent.NONE, self.is_bumper_pressed),
+            ScuttleBumperObstacleAvoidingState(BumperEvent.RELEASED, BumperEvent.NONE, self.publish_move_command, self.calculate_target_position, self.log)
         ]
 
         self.machine = StateMachine(self.log)
@@ -57,11 +65,28 @@ class ScuttleBumperNavigator(object):
         sample_frequency_in_hz = rospy.get_param('~update_frequency_in_hz', 15)
         self.rate = rospy.Rate(sample_frequency_in_hz)
 
-    def is_bumper_pressed(self, state: int):
+    def is_bumper_pressed(self, state: int) -> bool:
         return state == BumperEvent.PRESSED
 
     def log(self, msg: str):
         rospy.logdebug(msg)
+
+    def calculate_target_position(self, current_pose: Odometry) -> Pose:
+        # The pose is in the odometry frame. We need to migrate that to the robot chassis frame
+        try:
+            transform = self.tf_buffer.lookup_transform(
+                self.frame_id,
+                current_pose.header.frame_id,
+                current_pose.header.stamp,
+                rospy.Duration(1))
+        except (LookupException, ConnectivityException, ExtrapolationException):
+            # Bad stuff happens here
+            pass
+
+        initial_pose = Pose()
+        initial_pose.position.x = -0.3
+        return tf2_geometry_msgs.do_transform_pose(initial_pose, transform)
+
 
     def monitor_obstacle_callback(self, msg: BumperEvent):
         bumper_state = msg.state

@@ -45,7 +45,8 @@ from velocity_helpers import is_zero_velocity, is_not_zero_velocity
 class ScuttleStoppedState(State):
     state_name = 'stopped'
 
-    def __init__(self, bumper_pressed: Callable[[int], bool]):
+    def __init__(self, bumper_state: int, bumper_location: int, bumper_pressed: Callable[[int], bool]):
+        super().__init__(bumper_state, bumper_location)
         self.is_bumper_pressed = bumper_pressed
 
     @property
@@ -53,13 +54,13 @@ class ScuttleStoppedState(State):
         return self.state_name
 
     def enter(self, machine: StateMachine):
-        State.enter(self, machine)
+        super().enter(machine)
 
     def exit(self, machine: StateMachine):
-        State.exit(self, machine)
+        super().exit(machine)
 
     def update(self, machine: StateMachine):
-        if State.update(self, machine):
+        if super().update(machine):
             if self.is_bumper_pressed(self.bumper_state):
                 machine.go_to_state(ScuttleBumperObstacleAvoidingState.state_name)
             else:
@@ -69,7 +70,8 @@ class ScuttleStoppedState(State):
 class ScuttleMovingState(State):
     state_name = 'moving'
 
-    def __init__(self, bumper_pressed: Callable[[int], bool]):
+    def __init__(self, bumper_state: int, bumper_location: int, bumper_pressed: Callable[[int], bool]):
+        super().__init__(bumper_state, bumper_location)
         self.is_bumper_pressed = bumper_pressed
 
     @property
@@ -77,13 +79,13 @@ class ScuttleMovingState(State):
         return self.state_name
 
     def enter(self, machine: StateMachine):
-        State.enter(self, machine)
+        super().enter(machine)
 
     def exit(self, machine: StateMachine):
-        State.exit(self, machine)
+        super().exit(machine)
 
     def update(self, machine: StateMachine):
-        if State.update(self, machine):
+        if super().update(machine):
             if self.is_bumper_pressed(self.bumper_state):
                 machine.go_to_state(ScuttleBumperObstacleAvoidingState.state_name)
             else:
@@ -93,14 +95,19 @@ class ScuttleMovingState(State):
 class ScuttleBumperObstacleAvoidingState(State):
     state_name = 'avoiding_bumper_obstacle'
 
-    def __init__(self, publish_velocity: Callable[[Twist], None], log: Callable[[str], None]):
+    def __init__(
+            self,
+            bumper_state: int,
+            bumper_location: int,
+            publish_velocity: Callable[[Twist], None],
+            calculate_target_position: Callable[[Odometry], Pose],
+            log: Callable[[str], None]
+        ):
+        super().__init__(bumper_state, bumper_location)
         self.publish_velocity = publish_velocity
         self.log = log
 
-        self.frame_id = rospy.get_param('~robot_frame_id')
-
-        self.tf_buffer = Buffer(rospy.Duration(100.0))
-        self.tf_listener = TransformListener(self.tf_buffer)
+        self.calculate_target_position = calculate_target_position
 
         # Store the default message fields
         # self.is_bigendian = sys.byteorder == 'big'
@@ -127,25 +134,25 @@ class ScuttleBumperObstacleAvoidingState(State):
         return self.state_name
 
     def enter(self, machine: StateMachine):
-        State.enter(self, machine)
+        super().enter(machine)
 
         if self.odometry is None:
             # Uh oh, we don't know where we are ..
             self.odometry = Odometry()
 
-        self.target_pose = self.calculate_target_position(self.odometry)
-        self.avoiding_obstacle = True
+        #self.target_pose = self.calculate_target_position(self.odometry)
+        #self.avoiding_obstacle = True
 
         # Send an obstacle to the map so that we know for next time where it is
-        self.publish_obstacle(self.bumper_location)
+        #self.publish_obstacle(self.bumper_location)
 
     def exit(self, machine: StateMachine):
-        State.exit(self, machine)
+        super().exit(machine)
         self.avoiding_obstacle = False
         self.target_pose = None
 
     def update(self, machine: StateMachine):
-        if State.update(self, machine):
+        if super().update(machine):
             self.log('Updating reversing state ...')
 
             if self.avoiding_obstacle:
@@ -182,22 +189,6 @@ class ScuttleBumperObstacleAvoidingState(State):
                     machine.go_to_state(ScuttleMovingState.state_name)
                 else:
                     machine.go_to_state(ScuttleStoppedState.state_name)
-
-    def calculate_target_position(self, current_pose: Odometry) -> Pose:
-        # The pose is in the odometry frame. We need to migrate that to the robot chassis frame
-        try:
-            transform = self.tf_buffer.lookup_transform(
-                self.frame_id,
-                current_pose.header.frame_id,
-                current_pose.header.stamp,
-                rospy.Duration(1))
-        except (LookupException, ConnectivityException, ExtrapolationException):
-            # Bad stuff happens here
-            pass
-
-        initial_pose = Pose()
-        initial_pose.position.x = -0.3
-        return tf2_geometry_msgs.do_transform_pose(initial_pose, transform)
 
     def distance(self, pose: Pose):
         dx = pose.position.x - self.pose.linear.x
