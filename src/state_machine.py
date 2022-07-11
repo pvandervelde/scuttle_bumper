@@ -9,21 +9,40 @@ from nav_msgs.msg import Odometry
 
 class State(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, bumper_state: int, bumper_location: int):
+        self.entered = False
+        self.exited = False
+
+        self.bumper_state = bumper_state
+        self.bumper_location = bumper_location
+
+        self.odometry = None
+        self.velocity = None
 
     @property
     def name(self):
         return ''
 
+    @property
+    def has_entered(self):
+        return self.entered
+
+    @property
+    def has_exited(self):
+        return self.exited
+
     def enter(self, machine: StateMachine):
+        self.entered = True
+        self.exited = False
         pass
 
     def exit(self, machine: StateMachine):
+        self.entered = False
+        self.exited = True
         pass
 
     def update(self, machine: StateMachine):
-        pass
+        return True
 
     def set_bumper_state(self, bumper_state: int, bumper_location: int):
         self.bumper_state = bumper_state

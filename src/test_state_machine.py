@@ -8,9 +8,8 @@ from state_machine import State, StateMachine
 
 class MockState(State):
     def __init__(self, name: str):
+        super().__init__(-1, -1)
         self.state_name = name
-        self.entered = False
-        self.exited = False
         self.updated = False
 
     @property
@@ -18,26 +17,14 @@ class MockState(State):
         return self.state_name
 
     @property
-    def has_entered(self):
-        return self.entered
-
-    @property
-    def has_exited(self):
-        return self.exited
-
-    @property
     def has_updated(self):
         return self.updated
 
     def enter(self, machine: StateMachine):
-        self.entered = True
-        self.exited = False
-        State.enter(self, machine)
+        super().enter(machine)
 
     def exit(self, machine: StateMachine):
-        self.entered = False
-        self.exited = True
-        State.exit(self, machine)
+        super().exit(machine)
 
     def update(self, machine: StateMachine):
         self.updated = True
