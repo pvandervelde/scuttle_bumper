@@ -32,17 +32,36 @@ class ScuttleBumperNavigator(object):
         self.bumper_lock = Lock()
         self.velocity_lock = Lock()
 
-        self.frame_id = rospy.get_param('~robot_frame_id')
+        self.chassis_frame_id = rospy.get_param('~robot_frame_id')
+        self.odom_frame_id = rospy.get_param('~odom_frame_id')
 
         # Get the TF buffer so that we can translate between the odometry frame and the robot frame
         self.tf_buffer = Buffer(rospy.Duration(100.0))
         self.tf_listener = TransformListener(self.tf_buffer)
 
+        # Publish at the given rate
+        sample_frequency_in_hz = rospy.get_param('~update_frequency_in_hz', 15)
+        self.rate = rospy.Rate(sample_frequency_in_hz)
+
         # Create the state machine
+        max_linear_velocity = rospy.get_param('~max_linear_velocity')
+        min_linear_velocity = rospy.get_param('~min_linear_velocity')
+        max_linear_acceleration = rospy.get_param('~max_linear_acceleration')
+        distance_tolerance = rospy.get_param('~distance_tolerance')
         self.states = [
             ScuttleStoppedState(BumperEvent.RELEASED, BumperEvent.NONE, self.is_bumper_pressed),
             ScuttleMovingState(BumperEvent.RELEASED, BumperEvent.NONE, self.is_bumper_pressed),
-            ScuttleBumperObstacleAvoidingState(BumperEvent.RELEASED, BumperEvent.NONE, self.publish_move_command, self.calculate_target_position, self.log)
+            ScuttleBumperObstacleAvoidingState(
+                BumperEvent.RELEASED,
+                BumperEvent.NONE,
+                max_linear_velocity,
+                min_linear_velocity,
+                max_linear_acceleration,
+                sample_frequency_in_hz,
+                distance_tolerance,
+                self.publish_move_command,
+                self.transform_from_base_to_odom,
+                self.log)
         ]
 
         self.machine = StateMachine(self.log)
@@ -61,32 +80,25 @@ class ScuttleBumperNavigator(object):
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
         self.costmap_pub = rospy.Publisher('/obstacles', PointCloud2, queue_size=10)
 
-        # Publish at the given rate
-        sample_frequency_in_hz = rospy.get_param('~update_frequency_in_hz', 15)
-        self.rate = rospy.Rate(sample_frequency_in_hz)
-
     def is_bumper_pressed(self, state: int) -> bool:
         return state == BumperEvent.PRESSED
 
     def log(self, msg: str):
         rospy.logdebug(msg)
 
-    def calculate_target_position(self, current_pose: Odometry) -> Pose:
-        # The pose is in the odometry frame. We need to migrate that to the robot chassis frame
+    def transform_from_base_to_odom(self, current_pose: Pose) -> Pose:
+        # The pose is in the base frame. We need to migrate that to the odometry frame
         try:
             transform = self.tf_buffer.lookup_transform(
-                self.frame_id,
-                current_pose.header.frame_id,
+                self.odom_frame_id,
+                self.chassis_frame_id,
                 current_pose.header.stamp,
                 rospy.Duration(1))
         except (LookupException, ConnectivityException, ExtrapolationException):
             # Bad stuff happens here
             pass
 
-        initial_pose = Pose()
-        initial_pose.position.x = -0.3
-        return tf2_geometry_msgs.do_transform_pose(initial_pose, transform)
-
+        return tf2_geometry_msgs.do_transform_pose(current_pose, transform)
 
     def monitor_obstacle_callback(self, msg: BumperEvent):
         bumper_state = msg.state
