@@ -5,15 +5,16 @@ from __future__ import annotations
 
 # Python
 import sys
-from math import atan2, copysign, isclose, pow, sqrt
+from math import acos, atan2, copysign, isclose, pi, pow, sqrt
 from typing import Callable
 
 # ROS
 import rospy
-from geometry_msgs.msg import Pose, Twist
+from geometry_msgs.msg import Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import PointCloud2, PointField
 import tf2_geometry_msgs
+from tf.transformations import euler_from_quaternion
 from tf2_ros import Buffer, ConnectivityException, ExtrapolationException, LookupException, TransformListener
 
 # Local
@@ -99,15 +100,26 @@ class ScuttleBumperObstacleAvoidingState(State):
             self,
             bumper_state: int,
             bumper_location: int,
+            max_linear_velocity: float,
+            min_linear_velocity: float,
+            max_linear_acceleration: float,
+            rate_in_hz: int,
+            distance_tolerance: float,
             publish_velocity: Callable[[Twist], None],
-            calculate_target_position: Callable[[Odometry], Pose],
+            transform_from_base_to_odom: Callable[[Pose], Pose],
             log: Callable[[str], None]
         ):
         super().__init__(bumper_state, bumper_location)
         self.publish_velocity = publish_velocity
         self.log = log
 
-        self.calculate_target_position = calculate_target_position
+        self.max_linear_acceleration = max_linear_acceleration
+        self.rate_in_hz = rate_in_hz
+        self.distance_tolerance = distance_tolerance
+        self.max_linear_velocity = max_linear_velocity
+        self.min_linear_velocity = min_linear_velocity
+
+        self.transform_from_base_to_odom = transform_from_base_to_odom
 
         # Store the default message fields
         # self.is_bigendian = sys.byteorder == 'big'
@@ -136,12 +148,23 @@ class ScuttleBumperObstacleAvoidingState(State):
     def enter(self, machine: StateMachine):
         super().enter(machine)
 
+        # Indicate that we're in obstacle avoidance mode before we do anything else
+        self.avoiding_obstacle = True
+
+        # Hit an obstacle, so stop moving so we don't make things worse
+        self.publish_velocity(Twist())
+
         if self.odometry is None:
             # Uh oh, we don't know where we are ..
             self.odometry = Odometry()
 
-        #self.target_pose = self.calculate_target_position(self.odometry)
-        #self.avoiding_obstacle = True
+        # From the current position, move backwards by 1 robot length
+        # If we use the chassis link frame, then the new position is easy to calculate
+        initial_pose = Pose()
+        initial_pose.position.x = -0.3
+
+        # Now translate to the odom frame
+        self.target_pose_in_odom_frame = self.transform_from_base_to_odom(initial_pose)
 
         # Send an obstacle to the map so that we know for next time where it is
         #self.publish_obstacle(self.bumper_location)
@@ -149,7 +172,7 @@ class ScuttleBumperObstacleAvoidingState(State):
     def exit(self, machine: StateMachine):
         super().exit(machine)
         self.avoiding_obstacle = False
-        self.target_pose = None
+        self.target_pose_in_odom_frame = None
 
     def update(self, machine: StateMachine):
         if super().update(machine):
@@ -159,12 +182,18 @@ class ScuttleBumperObstacleAvoidingState(State):
                 self.log('Updating reversing state: Avoiding obstacle...')
 
                 # Move backwards until we reach the requested distance moved
-                current_distance = self.distance(self.target_pose)
-                if current_distance > self.distance_tolerance:
-                    # Not far enough away, keep going backwards
-                    linear_velocity = self.linear_vel(self.target_pose)
-                    angular_velocity = self.angular_vel(self.target_pose)
+                if not self.has_reached_target():
+                    # Calculate the velocity to get to the target location. The velocity is
+                    # calculated based on the distance to the targer, further away == higher
+                    # velocity, closer == lower velocity. Acceleration is limited to provide
+                    # a nice velocity ramp
+                    linear_velocity = self.linear_vel(self.target_pose_in_odom_frame, self.position)
+                    angular_velocity = 0.0 # self.angular_vel(self.target_pose)
 
+                    # We want to go backwards.
+                    # The velocity we get is always a positive
+                    # number as it's based on the absolute distance to the target. Thus
+                    # negate the linear velocity.
                     twist = Twist()
                     twist.linear.x = linear_velocity
                     twist.linear.y = 0
@@ -179,7 +208,7 @@ class ScuttleBumperObstacleAvoidingState(State):
                 else:
                     # Backed up far enough. Stop the movement
                     self.avoiding_obstacle = False
-                    self.target_pose = None
+                    self.target_pose_in_odom_frame = None
 
                     self.log('Reversing state: Updating velocity to zero')
                     twist = Twist()
@@ -190,45 +219,61 @@ class ScuttleBumperObstacleAvoidingState(State):
                 else:
                     machine.go_to_state(ScuttleStoppedState.state_name)
 
-    def distance(self, pose: Pose):
-        dx = pose.position.x - self.pose.linear.x
-        dy = pose.position.y - self.pose.linear.y
+    def distance(self, target_position: Pose, current_position: Pose):
+        dx = target_position.position.x - current_position.position.x
+        dy = target_position.position.y - current_position.position.y
         return sqrt(pow(dx, 2) + pow(dy, 2))
 
-    def velocity_with_ramp(self, current_velocity: float, desired_velocity: float, acceleration: float) -> float:
-        if desired_velocity == current_velocity:
-            return desired_velocity
-        else:
-            if desired_velocity > current_velocity:
-                # accelerating
-                achievable_velocity = current_velocity + acceleration / self.rate_in_hz
-                if achievable_velocity > desired_velocity:
-                    # desired acceleration is less than the possible acceleration
-                    return desired_velocity
-                else:
-                    # desired acceleration is more than the possible acceleration
-                    return achievable_velocity
-            else:
-                achievable_velocity = current_velocity - acceleration / self.rate_in_hz
-                if achievable_velocity < desired_velocity:
-                    # desired deceleration is less than the possible deceleration
-                    return desired_velocity
-                else:
-                    # desired deceleration is more than the possible decelaration
-                    return achievable_velocity
+    def has_reached_target(self):
+        distance = self.distance(self.target_pose_in_odom_frame, self.position)
 
-    def linear_vel(self, pose: Pose, constant=0.5):
-        # We want to drive at this velocity
-        desired_velocity = constant * self.distance(pose)
+        self.log('Obstacle avoiding state: Distance to target: {0}. Maximum distance from target: {1}'.format(distance, self.distance_tolerance))
+        if distance < self.distance_tolerance:
+            self.log('Obstacle avoiding state: back up distance reached. Distance to target: {0} < {1}'.format(distance, self.distance_tolerance))
+            return True
 
-        # But we have maximum accelerations and deccellerations
-        # If we don't have those SCUTTLE will stand on its rear wheels (which
-        # isn't possible in real life)
-        velocity = self.velocity_with_ramp(self.vx, desired_velocity, self.max_linear_acceleration)
-        if abs(velocity) > self.max_linear_velocity:
-            return copysign(self.max_linear_velocity, velocity)
+        if self.is_target_in_front():
+            self.log('Obstacle avoiding state: Passed backup target. Distance to target: {0} > {1}'.format(distance, self.distance_tolerance))
+            return True
+
+        return False
+
+    # Determine if we have driven backwards past our target point by any chance.
+    # This can happen when we move either fast enough that we move past our point between two time steps, or if our
+    # required accuracy is set to high
+    #
+    # We will assume that if the target is in front of the robot between 270 (right hand side of the robot) and 90
+    # (left hand side) then we have passed it.
+    def is_target_in_front(self):
+        angle_of_direction_vector_with_odom_x_axis = atan2(
+            self.target_pose_in_odom_frame.position.y - self.position.position.y,
+            self.target_pose_in_odom_frame.position.x - self.position.position.x)
+
+        (_, _, yaw) = euler_from_quaternion(
+            [
+                self.position.orientation.x,
+                self.position.orientation.y,
+                self.position.orientation.z,
+                self.position.orientation.w,
+            ])
+
+        angle_between_orientation_and_target_direction = angle_of_direction_vector_with_odom_x_axis - yaw
+
+        if abs(angle_between_orientation_and_target_direction) > (0.5 * pi):
+            return False
         else:
-            return velocity
+            return True
+
+    def linear_vel(self, target_position: Pose, current_position: Pose, constant=0.5):
+        desired_velocity = constant * self.distance(target_position, current_position)
+
+        # Assume that we drive backwards in the robot x-direction, so the velocity becomes
+        desired_velocity = -desired_velocity
+
+        # Take into account maximum accelerations and deccellerations so that we don't strip
+        # gears etc.
+        current_velocity = self.velocity.linear.x
+        return self.velocity_with_ramp(current_velocity, desired_velocity)
 
     def publish_obstacle(self, last_bumper_location: int):
         # Send obstacle message with coordinates of the obstacles if there are any
@@ -243,3 +288,31 @@ class ScuttleBumperObstacleAvoidingState(State):
 
         # CREATE THE MESSAGE TYPE HERE
         # self.obstacle_pub.publish(msg)
+
+    def velocity_with_ramp(self, current_velocity: float, desired_velocity: float) -> float:
+        if abs(desired_velocity) < self.min_linear_velocity:
+            desired_velocity = copysign(self.min_linear_velocity, desired_velocity)
+
+        if abs(desired_velocity) > self.max_linear_velocity:
+            desired_velocity = copysign(self.max_linear_velocity, desired_velocity)
+
+        if desired_velocity == current_velocity:
+            return desired_velocity
+        else:
+            if desired_velocity > current_velocity:
+                # accelerating
+                achievable_velocity = current_velocity + self.max_linear_acceleration / self.rate_in_hz
+                if achievable_velocity > desired_velocity:
+                    # desired acceleration is less than the possible acceleration
+                    return desired_velocity
+                else:
+                    # desired acceleration is more than the possible acceleration
+                    return achievable_velocity
+            else:
+                achievable_velocity = current_velocity - self.max_linear_acceleration / self.rate_in_hz
+                if achievable_velocity < desired_velocity:
+                    # desired deceleration is less than the possible deceleration
+                    return desired_velocity
+                else:
+                    # desired deceleration is more than the possible decelaration
+                    return achievable_velocity
