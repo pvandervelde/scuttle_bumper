@@ -50,6 +50,7 @@ class State(object):
 
     def set_odometry(self, odometry: Odometry):
         self.odometry = odometry
+        self.position = odometry.pose.pose
         self.velocity = odometry.twist.twist
 
 class StateMachine(object):
