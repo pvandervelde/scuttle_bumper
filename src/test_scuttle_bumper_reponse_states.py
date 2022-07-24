@@ -3,8 +3,9 @@ from math import isclose, pow
 from pytest import approx
 
 # ROS
-from geometry_msgs.msg import Point, Pose, Twist, Vector3
+from geometry_msgs.msg import Point, Pose, PoseStamped, Twist, Vector3
 from nav_msgs.msg import Odometry
+from rospy import Time
 
 # locals
 from state_machine import State, StateMachine
@@ -24,9 +25,11 @@ PUBLISHED_VELOCITY : Twist = None
 BASE_FRAME_TO_ODOM : Pose = Pose()
 
 # Helper functions
-
 def log(msg: str):
     print(msg)
+
+def get_time() -> Time:
+    return Time(secs=0, nsecs=0)
 
 def publish_velocity(velocity: Twist):
     global PUBLISHED_VELOCITY
@@ -36,13 +39,13 @@ def clear_globals():
     global PUBLISHED_VELOCITY
     PUBLISHED_VELOCITY = None
 
-def transform_from_base_to_odom(pose_in_base_frame: Pose) -> Pose:
+def transform_from_base_to_odom(pose_in_base_frame: PoseStamped) -> PoseStamped:
     global BASE_FRAME_TO_ODOM
     result = Pose()
     result.position = Point(
-        BASE_FRAME_TO_ODOM.position.x + pose_in_base_frame.position.x,
-        BASE_FRAME_TO_ODOM.position.y + pose_in_base_frame.position.y,
-        BASE_FRAME_TO_ODOM.position.z + pose_in_base_frame.position.z,
+        BASE_FRAME_TO_ODOM.position.x + pose_in_base_frame.pose.position.x,
+        BASE_FRAME_TO_ODOM.position.y + pose_in_base_frame.pose.position.y,
+        BASE_FRAME_TO_ODOM.position.z + pose_in_base_frame.pose.position.z,
     )
 
     return result
@@ -181,6 +184,7 @@ def test_should_switch_to_obstacle_avoiding_state_when_bumper_is_pressed_with_no
         rate_in_hz=10,
         distance_tolerance=0.001,
         chassis_frame='a',
+        get_time=get_time,
         publish_velocity=publish_velocity,
         transform_from_base_to_odom=transform_from_base_to_odom,
         log=log)
@@ -301,6 +305,7 @@ def test_should_switch_to_obstacle_avoiding_state_when_bumper_is_pressed_with_no
         rate_in_hz=10,
         distance_tolerance=0.001,
         chassis_frame='a',
+        get_time=get_time,
         publish_velocity=publish_velocity,
         transform_from_base_to_odom=transform_from_base_to_odom,
         log=log)
@@ -356,6 +361,7 @@ def test_should_switch_to_obstacle_avoiding_state_when_bumper_is_pressed_with_ve
         rate_in_hz=10,
         distance_tolerance=0.001,
         chassis_frame='a',
+        get_time=get_time,
         publish_velocity=publish_velocity,
         transform_from_base_to_odom=transform_from_base_to_odom,
         log=log)
@@ -420,6 +426,7 @@ def test_should_move_backwards_until_clear_when_obstacle_avoiding_state_updates_
         rate_in_hz=rate,
         distance_tolerance=distance_tolerance,
         chassis_frame='a',
+        get_time=get_time,
         publish_velocity=publish_velocity,
         transform_from_base_to_odom=transform_from_base_to_odom,
         log=log)
@@ -485,6 +492,7 @@ def test_should_move_backwards_until_clear_when_obstacle_avoiding_state_updates_
         rate_in_hz=rate,
         distance_tolerance=distance_tolerance,
         chassis_frame='a',
+        get_time=get_time,
         publish_velocity=publish_velocity,
         transform_from_base_to_odom=transform_from_base_to_odom,
         log=log)

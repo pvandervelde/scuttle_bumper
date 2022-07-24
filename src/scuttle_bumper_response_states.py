@@ -106,11 +106,13 @@ class ScuttleBumperObstacleAvoidingState(State):
             rate_in_hz: int,
             distance_tolerance: float,
             chassis_frame: str,
+            get_time: Callable[[], rospy.Time],
             publish_velocity: Callable[[Twist], None],
             transform_from_base_to_odom: Callable[[PoseStamped], PoseStamped],
             log: Callable[[str], None]
         ):
         super().__init__(bumper_state, bumper_location)
+        self.get_time = get_time
         self.publish_velocity = publish_velocity
         self.log = log
 
@@ -163,7 +165,7 @@ class ScuttleBumperObstacleAvoidingState(State):
         # From the current position, move backwards by 1 robot length
         # If we use the chassis link frame, then the new position is easy to calculate
         initial_pose = PoseStamped()
-        initial_pose.header.stamp = rospy.Time.now()
+        initial_pose.header.stamp = self.get_time()
         initial_pose.header.frame_id = self.chassis_frame
         initial_pose.pose = Pose()
         initial_pose.pose.position.x = -0.3
@@ -171,9 +173,9 @@ class ScuttleBumperObstacleAvoidingState(State):
         # Now translate to the odom frame
         target_pose_in_odom_frame = self.transform_from_base_to_odom(initial_pose)
         if target_pose_in_odom_frame == None:
-            target_pose_in_odom_frame = self.position
-
-        self.target_pose_in_odom_frame = target_pose_in_odom_frame
+            self.target_pose_in_odom_frame = self.position
+        else:
+            self.target_pose_in_odom_frame = target_pose_in_odom_frame.pose
 
         # Send an obstacle to the map so that we know for next time where it is
         #self.publish_obstacle(self.bumper_location)

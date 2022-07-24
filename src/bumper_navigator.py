@@ -60,6 +60,7 @@ class ScuttleBumperNavigator(object):
                 sample_frequency_in_hz,
                 distance_tolerance,
                 self.chassis_frame_id,
+                self.get_time,
                 self.publish_move_command,
                 self.transform_from_base_to_odom,
                 self.log)
@@ -80,6 +81,9 @@ class ScuttleBumperNavigator(object):
         # Publish velocity commands in case we hit an obstacle
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
         self.costmap_pub = rospy.Publisher('/obstacles', PointCloud2, queue_size=10)
+
+    def get_time(self) -> rospy.Time:
+        return rospy.Time.now()
 
     def is_bumper_pressed(self, state: int) -> bool:
         return state == BumperEvent.PRESSED
