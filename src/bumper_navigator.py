@@ -86,19 +86,23 @@ class ScuttleBumperNavigator(object):
     def log(self, msg: str):
         rospy.logdebug(msg)
 
+    def log_last_exception(self, msg: str):
+        rospy.logerr(msg, exc_info=True)
+
     def transform_from_base_to_odom(self, current_pose: Pose) -> Pose:
         # The pose is in the base frame. We need to migrate that to the odometry frame
         try:
             transform = self.tf_buffer.lookup_transform(
                 self.odom_frame_id,
                 self.chassis_frame_id,
-                current_pose.header.stamp,
+                0,
                 rospy.Duration(1))
-        except (LookupException, ConnectivityException, ExtrapolationException):
-            # Bad stuff happens here
-            pass
 
-        return tf2_geometry_msgs.do_transform_pose(current_pose, transform)
+            return tf2_geometry_msgs.do_transform_pose(current_pose, transform)
+        except (LookupException, ConnectivityException, ExtrapolationException):
+            self.log_last_exception('Transform of pose from base to odom failed.')
+
+        return None
 
     def monitor_obstacle_callback(self, msg: BumperEvent):
         bumper_state = msg.state
@@ -125,8 +129,7 @@ def main():
         navigator = ScuttleBumperNavigator()
         navigator.publish()
     except rospy.ROSInterruptException:
-        # Do we log stuff here
-        pass
+        rospy.logerr('bumper navigator node failed.', exc_info=True)
 
 if __name__ == '__main__':
     main()

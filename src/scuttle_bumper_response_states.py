@@ -164,7 +164,11 @@ class ScuttleBumperObstacleAvoidingState(State):
         initial_pose.position.x = -0.3
 
         # Now translate to the odom frame
-        self.target_pose_in_odom_frame = self.transform_from_base_to_odom(initial_pose)
+        target_pose_in_odom_frame = self.transform_from_base_to_odom(initial_pose)
+        if target_pose_in_odom_frame == None:
+            target_pose_in_odom_frame = self.position
+
+        self.target_pose_in_odom_frame = target_pose_in_odom_frame
 
         # Send an obstacle to the map so that we know for next time where it is
         #self.publish_obstacle(self.bumper_location)
