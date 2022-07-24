@@ -95,7 +95,7 @@ class ScuttleBumperNavigator(object):
             transform = self.tf_buffer.lookup_transform(
                 self.odom_frame_id,
                 self.chassis_frame_id,
-                0,
+                rospy.Time.now(),
                 rospy.Duration(1))
 
             return tf2_geometry_msgs.do_transform_pose(current_pose, transform)
