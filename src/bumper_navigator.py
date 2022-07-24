@@ -6,7 +6,7 @@ from threading import Lock
 
 # ROS
 import rospy
-from geometry_msgs.msg import Pose, Twist
+from geometry_msgs.msg import Pose, PoseStamped, Twist
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import PointCloud2, PointField
 import tf2_geometry_msgs
@@ -59,6 +59,7 @@ class ScuttleBumperNavigator(object):
                 max_linear_acceleration,
                 sample_frequency_in_hz,
                 distance_tolerance,
+                self.chassis_frame_id,
                 self.publish_move_command,
                 self.transform_from_base_to_odom,
                 self.log)
@@ -89,7 +90,7 @@ class ScuttleBumperNavigator(object):
     def log_last_exception(self, msg: str):
         rospy.logerr(msg, exc_info=True)
 
-    def transform_from_base_to_odom(self, current_pose: Pose) -> Pose:
+    def transform_from_base_to_odom(self, current_pose: PoseStamped) -> Pose:
         # The pose is in the base frame. We need to migrate that to the odometry frame
         try:
             transform = self.tf_buffer.lookup_transform(

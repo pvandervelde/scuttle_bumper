@@ -180,6 +180,7 @@ def test_should_switch_to_obstacle_avoiding_state_when_bumper_is_pressed_with_no
         max_linear_acceleration=1.0,
         rate_in_hz=10,
         distance_tolerance=0.001,
+        chassis_frame='a',
         publish_velocity=publish_velocity,
         transform_from_base_to_odom=transform_from_base_to_odom,
         log=log)
@@ -299,6 +300,7 @@ def test_should_switch_to_obstacle_avoiding_state_when_bumper_is_pressed_with_no
         max_linear_acceleration=1.0,
         rate_in_hz=10,
         distance_tolerance=0.001,
+        chassis_frame='a',
         publish_velocity=publish_velocity,
         transform_from_base_to_odom=transform_from_base_to_odom,
         log=log)
@@ -353,6 +355,7 @@ def test_should_switch_to_obstacle_avoiding_state_when_bumper_is_pressed_with_ve
         max_linear_acceleration=1.0,
         rate_in_hz=10,
         distance_tolerance=0.001,
+        chassis_frame='a',
         publish_velocity=publish_velocity,
         transform_from_base_to_odom=transform_from_base_to_odom,
         log=log)
@@ -416,6 +419,7 @@ def test_should_move_backwards_until_clear_when_obstacle_avoiding_state_updates_
         max_linear_acceleration=acceleration,
         rate_in_hz=rate,
         distance_tolerance=distance_tolerance,
+        chassis_frame='a',
         publish_velocity=publish_velocity,
         transform_from_base_to_odom=transform_from_base_to_odom,
         log=log)
@@ -480,6 +484,7 @@ def test_should_move_backwards_until_clear_when_obstacle_avoiding_state_updates_
         max_linear_acceleration=acceleration,
         rate_in_hz=rate,
         distance_tolerance=distance_tolerance,
+        chassis_frame='a',
         publish_velocity=publish_velocity,
         transform_from_base_to_odom=transform_from_base_to_odom,
         log=log)

@@ -10,7 +10,7 @@ from typing import Callable
 
 # ROS
 import rospy
-from geometry_msgs.msg import Pose, Quaternion, Twist, Vector3
+from geometry_msgs.msg import Pose, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import PointCloud2, PointField
 import tf2_geometry_msgs
@@ -105,8 +105,9 @@ class ScuttleBumperObstacleAvoidingState(State):
             max_linear_acceleration: float,
             rate_in_hz: int,
             distance_tolerance: float,
+            chassis_frame: str,
             publish_velocity: Callable[[Twist], None],
-            transform_from_base_to_odom: Callable[[Pose], Pose],
+            transform_from_base_to_odom: Callable[[PoseStamped], PoseStamped],
             log: Callable[[str], None]
         ):
         super().__init__(bumper_state, bumper_location)
@@ -119,6 +120,7 @@ class ScuttleBumperObstacleAvoidingState(State):
         self.max_linear_velocity = max_linear_velocity
         self.min_linear_velocity = min_linear_velocity
 
+        self.chassis_frame = chassis_frame
         self.transform_from_base_to_odom = transform_from_base_to_odom
 
         # Store the default message fields
@@ -160,8 +162,11 @@ class ScuttleBumperObstacleAvoidingState(State):
 
         # From the current position, move backwards by 1 robot length
         # If we use the chassis link frame, then the new position is easy to calculate
-        initial_pose = Pose()
-        initial_pose.position.x = -0.3
+        initial_pose = PoseStamped()
+        initial_pose.header.stamp = rospy.Time.now()
+        initial_pose.header.frame_id = self.bumper_frame_id # coordinate frame of the bumper
+        initial_pose.pose = Pose()
+        initial_pose.pose.position.x = -0.3
 
         # Now translate to the odom frame
         target_pose_in_odom_frame = self.transform_from_base_to_odom(initial_pose)
