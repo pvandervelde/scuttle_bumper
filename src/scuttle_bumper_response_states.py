@@ -164,7 +164,7 @@ class ScuttleBumperObstacleAvoidingState(State):
         # If we use the chassis link frame, then the new position is easy to calculate
         initial_pose = PoseStamped()
         initial_pose.header.stamp = rospy.Time.now()
-        initial_pose.header.frame_id = self.bumper_frame_id # coordinate frame of the bumper
+        initial_pose.header.frame_id = self.chassis_frame
         initial_pose.pose = Pose()
         initial_pose.pose.position.x = -0.3
 
