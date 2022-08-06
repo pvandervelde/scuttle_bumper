@@ -1,0 +1,131 @@
+<?xml version="1.0" ?>
+<robot name="scuttle" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find scuttle_bumper)/urdf/bumper.gazebo" />
+
+    <!--
+        Left hand bumper elements
+    -->
+
+    <joint name="front_bumper_bracket_left_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="0.2005 0.1375 0.015"/>
+        <parent link="chassis_link"/>
+        <child link="front_bumper_bracket_left_link"/>
+    </joint>
+
+    <!--
+        Define the left hand-side bumper bracket.
+    -->
+    <link name="front_bumper_bracket_left_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+            <geometry>
+                <mesh filename="package://scuttle_bumper/meshes/scuttle_bumper_bracket.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="silver"/>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0 "/>
+            <geometry>
+            <mesh filename="package://scuttle_bumper/meshes/scuttle_bumper_bracket_collision.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+     <joint name="front_bumper_plate_left_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="0.0135 -0.0225 -0.038"/>
+        <parent link="front_bumper_bracket_left_link"/>
+        <child link="front_bumper_plate_left_link"/>
+    </joint>
+
+    <!--
+        Define the left hand-side of the bumper plate, i.e. the part that is hit when scuttle bumps into an obstacle.
+        For URDF purposes we assume the bumper plate is split into a left-hand side and a right-hand side. In reality
+        there is only one plate but it is able to move relatively independent between the left and right hand sides.
+    -->
+    <link
+        name="front_bumper_plate_left_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+            <!-- Link to the visual mesh and indicate that the unit of length for the mesh is millimeters. -->
+            <mesh
+                filename="package://scuttle_bumper/meshes/scuttle_bumper_plate_left.stl"
+                scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material
+                name="silver"/>
+        </visual>
+        <collision
+            name="front_bumper_plate_left_cl">
+            <origin
+                rpy="0 0 0"
+                xyz="0 0 0"/>
+            <geometry>
+            <!-- Link to the collision mesh and indicate that the unit of length for the mesh is millimeters. -->
+            <mesh
+                filename="package://scuttle_bumper/meshes/scuttle_bumper_plate_left.stl"
+                scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!--
+        Right hand bumper elements
+    -->
+
+    <joint name="front_bumper_bracket_right_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="0.2005 -0.1375 0.015"/>
+        <parent link="chassis_link"/>
+        <child link="front_bumper_bracket_right_link"/>
+    </joint>
+
+    <link name="front_bumper_bracket_right_link">
+       <visual>
+            <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+            <geometry>
+            <mesh filename="package://scuttle_bumper/meshes/scuttle_bumper_bracket.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="silver"/>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+            <mesh filename="package://scuttle_bumper/meshes/scuttle_bumper_bracket_collision.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="front_bumper_plate_right_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="0.0135 0.0225 -0.038"/>
+        <parent link="front_bumper_bracket_right_link"/>
+        <child link="front_bumper_plate_right_link"/>
+    </joint>
+
+    <!--
+        Define the right hand-side of the bumper plate, i.e. the part that is hit when scuttle bumps into an obstacle.
+        For URDF purposes we assume the bumper plate is split into a left-hand side and a right-hand side. In reality
+        there is only one plate but it is able to move relatively independent between the left and right hand sides.
+    -->
+    <link name="front_bumper_plate_right_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+            <!-- Link to the visual mesh and indicate that the unit of length for the mesh is millimeters. -->
+            <mesh
+                filename="package://scuttle_bumper/meshes/scuttle_bumper_plate_right.stl"
+                scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="silver"/>
+        </visual>
+        <collision name="front_bumper_plate_right_cl">
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+            <!-- Link to the collision mesh and indicate that the unit of length for the mesh is millimeters. -->
+            <mesh
+                filename="package://scuttle_bumper/meshes/scuttle_bumper_plate_right.stl"
+                scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+</robot>

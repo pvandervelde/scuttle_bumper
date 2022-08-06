@@ -1,0 +1,87 @@
+<launch>
+    <!--
+        Indicates if ROS is running on a physical SCUTTLE (value = true) or a virtual one
+        (value = false), e.g. when running in Gazebo.
+    -->
+    <arg name="is_physical" default="true"/>
+
+    <!--
+        Topic redirection
+    -->
+    <arg name="cmd_vel_topic" default="/bumper_vel" />
+    <arg name="odom_topic" default="/odom" />
+    <arg name="bumper_topic" default="events" />
+    <arg name="obstacles_topic" default="obstacles" />
+
+
+    <!--
+        When we're in Gazebo ...
+    -->
+    <group unless="$(arg is_physical)">
+        <!--
+            Start the translation node that translates Gazebo contact sensor responses to
+            scuttle bumper responses
+        -->
+        <!--
+            The Gazebo contact sensor translator, which translates Gazebo ContactSensor events
+            in to BumperEvents
+        -->
+        <node
+            name="gazebo_translator"
+            ns="scuttle/sensor/bumper"
+            pkg="scuttle_bumper"
+            respawn="true"
+            type="gazebo_contact_sensor_translator.py"
+        >
+            <param name="bumper_frame_id" value="chassis_link" />
+            <param name="gazebo_contact_debounce_time_in_seconds" type="double" value="0.3" />
+            <!-- This value should match the value in the `bumper.gazebo` URDF file -->
+            <param name="gazebo_contact_sample_frequency_in_hz" type="int" value="15" />
+
+            <!-- Remap the subscription topic to point to the topic for the front left bumper -->
+            <remap from="/scuttle/sensor/bumper/gazebo/front/left" to="front_left_gazebo" />
+            <remap from="/scuttle/sensor/bumper/gazebo/front/right" to="front_right_gazebo" />
+            <!-- Remap the publishing topic -->
+            <!--<remap from="/scuttle/sensor/bumper/events" to="$(arg bumper_topic)" />-->
+        </node>
+    </group>
+
+    <group if="$(arg is_physical)">
+        <!--
+            Start the bumper node that connects to the RPi GPIO pins to listen for
+
+        -->
+    </group>
+
+    <!--
+        Start the bumper navigator node which sends velocity commands based on bumper contacts
+    -->
+    <node
+        name="bumper_navigator"
+        ns="scuttle/navigation"
+        pkg="scuttle_bumper"
+        respawn="true"
+        type="bumper_navigator.py"
+    >
+        <param name="robot_frame_id" value="chassis_link" />
+        <param name="odom_frame_id" value="odom" />
+
+        <param name="max_linear_velocity" value="0.5" />
+        <param name="min_linear_velocity" value="0.1" />
+        <param name="max_linear_acceleration" value="0.5" />
+        <param name="update_frequency_in_hz" value="15" />
+
+        <!--
+            Assume we can move the robot to within 1 cm of the target when backing up.
+        -->
+        <param name="distance_tolerance" value="0.01" />
+
+        <!-- Remap the subscription topic to point to the topic for the front left bumper -->
+        <!--<remap from="/scuttle/sensor/bumper/events" to="$(arg )" />-->
+        <remap from="/odom" to="$(arg odom_topic)" />
+        <!-- Remap the publishing topic -->
+        <remap from="/cmd_vel" to="$(arg cmd_vel_topic)" />
+        <remap from="obstacles" to="$(arg obstacles_topic)" />
+    </node>
+
+</launch>
