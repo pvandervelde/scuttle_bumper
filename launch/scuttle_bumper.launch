@@ -49,8 +49,30 @@
     <group if="$(arg is_physical)">
         <!--
             Start the bumper node that connects to the RPi GPIO pins to listen for
-
         -->
+        <node
+            name="bumper_switch_translator"
+            ns="scuttle/sensor/bumper"
+            pkg="scuttle_bumper"
+            respawn="true"
+            type="bumper_switch_translator.py"
+        >
+            <param name="bumper_frame_id" value="chassis_link" />
+            <param name="switch_debounce_time_in_seconds" type="double" value="0.1" />
+            <param name="sample_frequency_in_hz" type="int" value="25" />
+
+            <!--
+                The pin numbers of the GPIO pins on which the switches are attached.
+                This follows the board pin out defined here: https://linuxhint.com/gpio-pinout-raspberry-pi/
+
+                *NOTE* Only change this if you know what you're doing.
+            -->
+            <!-- <param name="gpio_pin_left_switch" type="int" value="19" /> -->
+            <!-- <param name="gpio_pin_right_switch" type="int" value="21" /> -->
+
+            <!-- Remap the publishing topic -->
+            <!--<remap from="/scuttle/sensor/bumper/events" to="$(arg bumper_topic)" />-->
+        </node>
     </group>
 
     <!--
