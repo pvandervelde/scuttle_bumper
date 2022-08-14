@@ -72,11 +72,11 @@ class BumperSwitchTranslator(object):
     def event_callback_switch(self, channel: int):
         if channel == self.left_switch_pin:
             rospy.logdebug("Bumper event - Left")
-            self.record_event_switch(self, self.left_switch_pin, self.left_debounce)
+            self.record_event_switch(self.left_switch_pin, self.left_debounce)
 
         if channel == self.right_switch_pin:
             rospy.logdebug("Bumper event - Right")
-            self.record_event_switch(self, self.right_switch_pin, self.right_debounce)
+            self.record_event_switch(self.right_switch_pin, self.right_debounce)
 
     def record_event_switch(self, channel: int, debounce: Debounce):
         if GPIO.input(channel) == GPIO.HIGH:
